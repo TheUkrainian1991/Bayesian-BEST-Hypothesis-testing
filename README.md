@@ -5,7 +5,8 @@ Python implementation of a Bayesian model to replace t-tests with Bayesian estim
 
 John K. Kruschke. Bayesian estimation supersedes the t test. Journal of Experimental Psychology: General, 2013, v.142 (2), pp. 573-603. (doi: 10.1037/a0029146)
 
-Detailed information on it here [Best Docs](https://best.readthedocs.io/en/latest/explanations.html). And original python version of it: [GitHub Treszkai Best](https://github.com/treszkai/best). A YouTube explanation of the method: [Bayesian Estimation Supersedes the t Test](https://www.youtube.com/watch?v=fhw1j1Ru2i0)
+Detailed information on it here [Best Docs](https://best.readthedocs.io/en/latest/explanations.html). A YouTube explanation of the method: [Bayesian Estimation Supersedes the t Test](https://www.youtube.com/watch?v=fhw1j1Ru2i0)
+The original python code which this is based on [GitHub Treszkai Best](https://github.com/treszkai/best) had some issues running. Hence, this module is refactored to run. 
 
 ## What the Package Does
 The purpose of the Bayesian method is to assume there is uncertainty on every variable of the distribution. For instance, we may have the mean and standard deviation of the observed data, but we can't be sure that is the actual mean and standard deviation.
