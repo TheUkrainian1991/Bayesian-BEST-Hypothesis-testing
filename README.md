@@ -1,4 +1,4 @@
-This package implements Bayesian estimation of the mean of one or two groups, and plotting functions for the posterior distributions of variables such as the effect size, group means and their difference.
+This package implements Bayesian estimation of the parameters of two groups, and plotting functions for the posterior distributions of variables such as the effect size, group means and their difference.
 
 ## Origin
 Python implementation of a Bayesian model to replace t-tests with Bayesian estimation, following the idea described in the following publication:
@@ -22,6 +22,8 @@ bayestest = BayesianHypothesisTest(df=dimension_normalised,
                                    group2_name='interview',
                                    value_column='normalized_value',
                                    category_column='del_type')
+
+bayestest.run_model()
 bayestest.plot_results()
 ``` 
 
@@ -30,3 +32,6 @@ You can also the probability that the first group’s mean is larger by at least
 ```python
 best_out.posterior_prob('Difference of means', low=0.5)
 ```
+
+## A very simple conclusion
+Although not full-proof, generally, once we have the plots of the results, if the 'difference of means' and 'difference of standard deviation' do not cross 0, we can be very sure that the two groups differ.
