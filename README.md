@@ -13,6 +13,15 @@ The purpose of the Bayesian method is to assume there is uncertainty on every va
 First we assume a 'prior' distribution of the mean and standard deviation of the two groups, then the model updates this to 'posterior' distributions after it _sees_ the observed data. These prior assumptions have minimal effect on the posterior.
 
 ## Examples ##
+Given a pandas dataframe such as this:
+| del_type        |      normalised_value   |
+|:--------------|:-----------------------------:|
+|interview | 0.45 |
+|interview | 0.43 |
+|paper | -0.35 |
+|interview | 0.45 |
+|paper | -0.45 |
+|interview | 0.35 |
 
 A complete analysis and plotting is done in just a few lines:
 
