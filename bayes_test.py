@@ -211,7 +211,7 @@ class BayesianHypothesisTest:
         ax.set_xlim(samples_start.min(), samples_start.max())
         return ax
 
-    def plot_normality_posterior(self, nu_min, axis, bins, title, fcolor):
+    def plot_normality_posterior(self, nu_min, ax, bins, title, fcolor):
         # TODO merge it into plot_posterior, with a log_x: bool = False parameter
         #  Then we could also center the "95% HPD" text on the log scale.
     
@@ -221,7 +221,7 @@ class BayesianHypothesisTest:
                                 num=bins + 1)
         self.plot_posterior(
                        var_name,
-                       ax=axis,
+                       ax=ax,
                        bins=norm_bins,
                        title=title,
                        label=r'$\nu$',
