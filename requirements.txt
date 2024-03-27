@@ -1,0 +1,7 @@
+numpy==1.26.3
+pandas==2.1.4
+pymc @ git+https://github.com/pymc-devs/pymc3@89f6fcf751774fb50016561dc448a87fba7ed3aa
+arviz==0.17.1
+matplotlib==3.8.2
+matplotlib-inline==0.1.6
+scipy==1.12.0

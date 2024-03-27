@@ -10,15 +10,15 @@ import matplotlib.lines as mpllines
 class BayesianHypothesisTest:
 
     def __init__(self, df: pd.DataFrame, group1_name: str, group2_name: str, value_column: str, category_column: str):
-        self.group1name = group1_name
-        self.group2name = group2_name
+        self.group1_name = group1_name
+        self.group2_name = group2_name
         self.y1 = np.array(list(df[df[category_column] == group1_name][value_column]))
         self.y2 = np.array(list(df[df[category_column] == group2_name][value_column]))
         self.nu_min = 2.5
         self.trace = None
 
 
-    def run_model(self):
+    def run_model(self, draws=2000):
         assert self.y1.ndim == 1
         assert self.y2.ndim == 1
 
@@ -75,7 +75,7 @@ class BayesianHypothesisTest:
                 'Effect size', diff_of_means / np.sqrt((group1_sd ** 2 + group2_sd ** 2) / 2)
             )
             
-            self.trace = pm.sample(20000) #Runs markov-chain monte carlo
+            self.trace = pm.sample(draws) #Runs markov-chain monte carlo
     
     def plot_posterior(self,
                    var_name: str,
@@ -211,7 +211,7 @@ class BayesianHypothesisTest:
         ax.set_xlim(samples_start.min(), samples_start.max())
         return ax
 
-    def plot_normality_posterior(self, nu_min, ax, bins, title, fcolor):
+    def plot_normality_posterior(self, nu_min, axis, bins, title, fcolor):
         # TODO merge it into plot_posterior, with a log_x: bool = False parameter
         #  Then we could also center the "95% HPD" text on the log scale.
     
@@ -219,9 +219,9 @@ class BayesianHypothesisTest:
         norm_bins = np.logspace(np.log10(nu_min),
                                 np.log10(np.array(arviz.hdi(self.trace, var_names=[var_name], hdi_prob=0.95).data_vars[var_name])[-1]),
                                 num=bins + 1)
-        self.plot_posterior(self.trace,
+        self.plot_posterior(
                        var_name,
-                       ax=ax,
+                       ax=axis,
                        bins=norm_bins,
                        title=title,
                        label=r'$\nu$',
@@ -524,4 +524,3 @@ class BayesianHypothesisTest:
         
         
         fig.tight_layout()
-
