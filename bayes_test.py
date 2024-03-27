@@ -57,12 +57,15 @@ class BayesianHypothesisTest:
             group2_logsigma = pm.Uniform(
                 'Group 2 log sigma', lower=np.log(sigma_low), upper=np.log(sigma_high)
             )
+
+            # Prior of T distribution value sigma
             group1_sigma = pm.Deterministic('Group 1 sigma', np.exp(group1_logsigma))
             group2_sigma = pm.Deterministic('Group 2 sigma', np.exp(group2_logsigma))
         
             lambda1 = group1_sigma ** (-2)
             lambda2 = group2_sigma ** (-2)
-        
+
+            # Prior assumption of the standard deviation
             group1_sd = pm.Deterministic('Group 1 SD', group1_sigma * (nu / (nu - 2)) ** 0.5)
             group2_sd = pm.Deterministic('Group 2 SD', group2_sigma * (nu / (nu - 2)) ** 0.5)
         
@@ -212,8 +215,6 @@ class BayesianHypothesisTest:
         return ax
 
     def plot_normality_posterior(self, nu_min, ax, bins, title, fcolor):
-        # TODO merge it into plot_posterior, with a log_x: bool = False parameter
-        #  Then we could also center the "95% HPD" text on the log scale.
     
         var_name = 'Normality'
         norm_bins = np.logspace(np.log10(nu_min),
@@ -274,32 +275,6 @@ class BayesianHypothesisTest:
         Returns
         -------
         Matplotlib Axes
-            The Axes object containing the plot. Using this return value, the
-            plot can be customized afterwards – for details, see the documentation
-            of the `Matplotlib Axes API <https://matplotlib.org/api/axes_api.html>`_.
-    
-        Examples
-        --------
-        To print the data of the second group, add a hatch to the histogram, and
-        set the limits of the *x* axis to 85 and 115:
-    
-            >>> import matplotlib as plt
-            >>> ax = best.plot_data_and_prediction(
-            ...         best_out,
-            ...         2,
-            ...         hist_kwargs={'hatch':'...'}
-            ... )
-            >>> ax.set_xlim(85, 115)
-            >>> plt.show()
-    
-        Notes
-        -----
-        You can move the histogram in front of the predictive curves by passing
-        ``hist_kwargs={'zorder': 10}`` as an argument, or completely behind the
-        curves with ``hist_kwargs={'zorder': 0}``.
-    
-        If the plot is large enough, it is suggested to put a legend on it, by
-        calling ``ax.legend()`` afterwards.
         """
     
         if ax is None:

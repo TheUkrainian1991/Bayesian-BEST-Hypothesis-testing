@@ -43,5 +43,11 @@ You can also the probability that the first group’s mean is larger by at least
 best_out.posterior_prob('Difference of means', low=0.5)
 ```
 
+When looking at the model in the code, think backwards. Think at the start what you want to know, the means, the standard deviation, the differences of those two values between the two groups.
+
+Thus, you 'guess' what their distributions are and but them under ```with model:```. These are the priors.
+
+Give the observed data in a distribution (such as student T) and run a markov chain monte carlo to find the posterior distributions of those priors.
+
 ## A very simple conclusion
 Although not full-proof, generally, once we have the plots of the results, if the 'difference of means' and 'difference of standard deviation' do not cross 0, we can be very sure that the two groups differ.
