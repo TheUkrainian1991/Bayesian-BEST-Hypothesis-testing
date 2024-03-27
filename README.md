@@ -40,8 +40,15 @@ bayestest.plot_results()
 You can also the probability that the first group’s mean is larger by at least 0.5 than the other’s:
 
 ```python
-best_out.posterior_prob('Difference of means', low=0.5)
+bayestest.posterior_prob('Difference of means', low=0.5)
 ```
+
+If you want to retrieve values that are labelled on the graph you can call:
+
+```python
+bayestest.value_storage
+```
+Which returns a dictionary of the parameters of the different parameter distributions (such as mode, hdi_min, hdi_max)
 
 When looking at the model in the code, think backwards. Think at the start what you want to know, the means, the standard deviation, the differences of those two values between the two groups.
 

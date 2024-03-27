@@ -16,6 +16,7 @@ class BayesianHypothesisTest:
         self.y2 = np.array(list(df[df[category_column] == group2_name][value_column]))
         self.nu_min = 2.5
         self.trace = None
+        self.value_storage = {}
 
 
     def run_model(self, draws=2000):
@@ -161,6 +162,7 @@ class BayesianHypothesisTest:
                 max_idx = np.argmax(vals)
                 mode_val = x[max_idx]
                 stat_val =  mode_val
+                
             elif stat == 'mean':
                 stat_val = np.mean(samples)
             else:
@@ -172,13 +174,29 @@ class BayesianHypothesisTest:
                     horizontalalignment='center',
                     verticalalignment='top',
                     )
-    
+
+            if var_name in self.value_storage:
+                # Update the subdictionary with stat: 0
+                self.value_storage[var_name].update({stat: stat_val})
+            else:
+                # Create a new subdictionary with stat: 0
+                self.value_storage[var_name] = {stat: stat_val}
+
+
+
         if ref_val is not None:
             ax.axvline(ref_val, linestyle=':')
     
         # plot HDI
         hdi_min, hdi_max = tuple(np.array(arviz.hdi(self.trace, var_names=[var_name], hdi_prob=0.95).data_vars[var_name]))
-    
+        if var_name in self.value_storage:
+            # Update the subdictionary
+            self.value_storage[var_name].update({'hdi_min': hdi_min,
+                                                 'hdi_max': hdi_max})
+        else:
+            # Create a new subdictionary
+            self.value_storage[var_name] = {'hdi_min': hdi_min,
+                                            'hdi_max': hdi_max}
         hdi_line, = ax.plot([hdi_min, hdi_max], [0, 0],
                             lw=5.0, color='k')
         hdi_line.set_clip_on(False)
@@ -212,6 +230,8 @@ class BayesianHypothesisTest:
             ax.set_title(title)
             
         ax.set_xlim(samples_start.min(), samples_start.max())
+
+
         return ax
 
     def plot_normality_posterior(self, nu_min, ax, bins, title, fcolor):
