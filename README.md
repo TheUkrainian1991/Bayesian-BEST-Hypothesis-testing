@@ -57,4 +57,6 @@ Thus, you 'guess' what their distributions are and but them under ```with model:
 Give the observed data in a distribution (such as student T) and run a markov chain monte carlo to find the posterior distributions of those priors.
 
 ## A very simple conclusion
-Although not full-proof, generally, once we have the plots of the results, if the 'difference of means' and 'difference of standard deviation' do not cross 0, we can be very sure that the two groups differ.
+- The larger the normality parameter, the more centered the T distribution, meaning data points far from the mean are less likely. Values less than 10 indicate skewness due to outliers.
+- If distributions of the difference in means and difference of standard deviations do not cross 0, we can say that there is a very high likelihood of a difference between the two groups.
+- The effect size also shows us the difference of the two means, relative to the pooled standard deviation. Similarly, if it does not cross 0, we can say that there is a very high likelihood of a difference between the two groups.
