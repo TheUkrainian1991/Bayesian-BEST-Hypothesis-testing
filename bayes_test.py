@@ -5,6 +5,7 @@ import arviz
 import matplotlib.pyplot as plt
 from matplotlib.transforms import blended_transform_factory
 import scipy
+from scipy.stats import skew as scipyskew
 import matplotlib.lines as mpllines
 
 class BayesianHypothesisTest:
@@ -19,7 +20,21 @@ class BayesianHypothesisTest:
         self.value_storage = {}
 
 
-    def run_model(self, draws=2000):
+    def logp_skewt(self, value, nu, mu, sigma, alpha):
+        """
+        Custom distribution giving density function of skewed student T"""
+        return (np.log(2) + 
+            pm.logp(pm.StudentT.dist(nu, mu=mu, sigma=sigma), value) + 
+            pm.logcdf(pm.StudentT.dist(nu, mu=mu, sigma=sigma), alpha*value) - 
+            np.log(sigma))
+
+
+    def run_model(self, draws=2000, tune=1000):
+        """
+        You should use this model if your data is quite normal.
+        Model Structure: paper https://jkkweb.sitehost.iu.edu/articles/Kruschke2013JEPG.pdf
+        """
+
         assert self.y1.ndim == 1
         assert self.y2.ndim == 1
 
@@ -79,7 +94,84 @@ class BayesianHypothesisTest:
                 'Effect size', diff_of_means / np.sqrt((group1_sd ** 2 + group2_sd ** 2) / 2)
             )
             
-            self.trace = pm.sample(draws) #Runs markov-chain monte carlo
+            self.trace = pm.sample(tune=tune, draws=draws) #Runs markov-chain monte carlo
+
+
+    def run_skewed_model(self, draws=2000, tune=1000):
+        """
+        You should only use this model if your data is skewed,
+        since a distribution of skewed T-distribution is implemented
+        for the observed variables. This is incredibly slow 100x slower.
+        Model Structure: # paper https://jkkweb.sitehost.iu.edu/articles/Kruschke2013JEPG.pdf
+        Skewed T ideas from:
+        https://discourse.pymc.io/t/boosting-efficiency-of-skewed-t-models-in-pymc/12892/2
+        """
+        
+        assert self.y1.ndim == 1
+        assert self.y2.ndim == 1
+
+        y_all = np.concatenate((self.y1, self.y2))
+        
+        mu_loc = np.mean(y_all)
+        mu_scale = np.std(y_all) * 1000
+        
+        sigma_low = np.std(y_all) / 1000
+        sigma_high = np.std(y_all) * 1000
+        
+        # the shape of the t-distribution changes noticeably for values of 𝜈
+        # near 3 but changes relatively little for 𝜈>30
+        nu_min = self.nu_min # 2.5 prevents strong outliers and extremely large standard deviations
+        nu_mean = 30
+        _nu_param = nu_mean - nu_min
+
+        alpha_both = scipyskew(y_all)
+        
+        model = pm.Model()
+        with model:
+            # Prior assumption is the distribution of mean and standard deviation of the two groups are the same,
+            # values are assumed as the mean and std of both groups
+            group1_mean = pm.Normal('Group 1 mean', mu=mu_loc, tau=1/mu_scale**2)
+            group2_mean = pm.Normal('Group 2 mean', mu=mu_loc, tau=1/mu_scale**2)
+        
+            # Prior assumption of the height of the t distribution (greek letter nu 𝜈)
+            # This normality distribution is fed by both groups, since outliers are rare
+            nu = pm.Exponential('nu - %g' % nu_min, 1 / (nu_mean - nu_min)) + nu_min
+            _ = pm.Deterministic('Normality', nu) 
+        
+            # Prior assumption that the distribution of sigma (standard deviation) is uniform
+            # between a very small number and a very large number (hence sigma_low and sigma_high)
+            group1_logsigma = pm.Uniform(
+                'Group 1 log sigma', lower=np.log(sigma_low), upper=np.log(sigma_high)
+            )
+            group2_logsigma = pm.Uniform(
+                'Group 2 log sigma', lower=np.log(sigma_low), upper=np.log(sigma_high)
+            )
+
+            # Prior of T distribution value sigma
+            group1_sigma = pm.Deterministic('Group 1 sigma', np.exp(group1_logsigma))
+            group2_sigma = pm.Deterministic('Group 2 sigma', np.exp(group2_logsigma))
+
+            # Prior assumption of the standard deviation
+            group1_sd = pm.Deterministic('Group 1 SD', group1_sigma * (nu / (nu - 2)) ** 0.5)
+            group2_sd = pm.Deterministic('Group 2 SD', group2_sigma * (nu / (nu - 2)) ** 0.5)
+            
+            # Prior assumption of alpha - measure of the skewness of the distribution
+            group1_alpha_skew = pm.StudentT('group1_alpha_skew', nu=3, mu=alpha_both, sigma=1)
+            group2_alpha_skew = pm.StudentT('group2_alpha_skew', nu=3, mu=alpha_both, sigma=1)
+
+            # Custom distribution is a skewed t-distribution
+            # These need to be positional arguments only
+            # Broadcasting is applied here
+            _ = pm.CustomDist("Group 1 data", nu*np.ones(len(self.y1)), group1_mean,  group1_sigma, group1_alpha_skew, logp=self.logp_skewt, observed=self.y1)
+            _ = pm.CustomDist("Group 2 data", nu*np.ones(len(self.y2)), group2_mean,  group2_sigma, group2_alpha_skew, logp=self.logp_skewt, observed=self.y2)
+
+            diff_of_means = pm.Deterministic('Difference of means', group1_mean - group2_mean)
+            _ = pm.Deterministic('Difference of SDs', group1_sd - group2_sd)
+            _ = pm.Deterministic(
+                'Effect size', diff_of_means / np.sqrt((group1_sd ** 2 + group2_sd ** 2) / 2)
+            )
+            
+            self.trace = pm.sample(tune=tune, draws=draws, target_accept=0.95) #Runs markov-chain monte carlo
     
     def plot_posterior(self,
                    var_name: str,
