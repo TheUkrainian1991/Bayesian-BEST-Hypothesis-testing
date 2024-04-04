@@ -5,7 +5,6 @@ import arviz
 import matplotlib.pyplot as plt
 from matplotlib.transforms import blended_transform_factory
 import scipy
-from scipy.stats import skew as scipyskew
 import matplotlib.lines as mpllines
 
 class BayesianHypothesisTest:
@@ -51,7 +50,6 @@ class BayesianHypothesisTest:
         # near 3 but changes relatively little for 𝜈>30
         nu_min = self.nu_min # 2.5 prevents strong outliers and extremely large standard deviations
         nu_mean = 30
-        _nu_param = nu_mean - nu_min
         
         model = pm.Model()
         with model:
@@ -95,83 +93,6 @@ class BayesianHypothesisTest:
             )
             
             self.trace = pm.sample(tune=tune, draws=draws) #Runs markov-chain monte carlo
-
-
-    def run_skewed_model(self, draws=2000, tune=1000):
-        """
-        You should only use this model if your data is skewed,
-        since a distribution of skewed T-distribution is implemented
-        for the observed variables. This is incredibly slow 100x slower.
-        Model Structure: # paper https://jkkweb.sitehost.iu.edu/articles/Kruschke2013JEPG.pdf
-        Skewed T ideas from:
-        https://discourse.pymc.io/t/boosting-efficiency-of-skewed-t-models-in-pymc/12892/2
-        """
-        
-        assert self.y1.ndim == 1
-        assert self.y2.ndim == 1
-
-        y_all = np.concatenate((self.y1, self.y2))
-        
-        mu_loc = np.mean(y_all)
-        mu_scale = np.std(y_all) * 1000
-        
-        sigma_low = np.std(y_all) / 1000
-        sigma_high = np.std(y_all) * 1000
-        
-        # the shape of the t-distribution changes noticeably for values of 𝜈
-        # near 3 but changes relatively little for 𝜈>30
-        nu_min = self.nu_min # 2.5 prevents strong outliers and extremely large standard deviations
-        nu_mean = 30
-        _nu_param = nu_mean - nu_min
-
-        alpha_both = scipyskew(y_all)
-        
-        model = pm.Model()
-        with model:
-            # Prior assumption is the distribution of mean and standard deviation of the two groups are the same,
-            # values are assumed as the mean and std of both groups
-            group1_mean = pm.Normal('Group 1 mean', mu=mu_loc, tau=1/mu_scale**2)
-            group2_mean = pm.Normal('Group 2 mean', mu=mu_loc, tau=1/mu_scale**2)
-        
-            # Prior assumption of the height of the t distribution (greek letter nu 𝜈)
-            # This normality distribution is fed by both groups, since outliers are rare
-            nu = pm.Exponential('nu - %g' % nu_min, 1 / (nu_mean - nu_min)) + nu_min
-            _ = pm.Deterministic('Normality', nu) 
-        
-            # Prior assumption that the distribution of sigma (standard deviation) is uniform
-            # between a very small number and a very large number (hence sigma_low and sigma_high)
-            group1_logsigma = pm.Uniform(
-                'Group 1 log sigma', lower=np.log(sigma_low), upper=np.log(sigma_high)
-            )
-            group2_logsigma = pm.Uniform(
-                'Group 2 log sigma', lower=np.log(sigma_low), upper=np.log(sigma_high)
-            )
-
-            # Prior of T distribution value sigma
-            group1_sigma = pm.Deterministic('Group 1 sigma', np.exp(group1_logsigma))
-            group2_sigma = pm.Deterministic('Group 2 sigma', np.exp(group2_logsigma))
-
-            # Prior assumption of the standard deviation
-            group1_sd = pm.Deterministic('Group 1 SD', group1_sigma * (nu / (nu - 2)) ** 0.5)
-            group2_sd = pm.Deterministic('Group 2 SD', group2_sigma * (nu / (nu - 2)) ** 0.5)
-            
-            # Prior assumption of alpha - measure of the skewness of the distribution
-            group1_alpha_skew = pm.StudentT('group1_alpha_skew', nu=3, mu=alpha_both, sigma=1)
-            group2_alpha_skew = pm.StudentT('group2_alpha_skew', nu=3, mu=alpha_both, sigma=1)
-
-            # Custom distribution is a skewed t-distribution
-            # These need to be positional arguments only
-            # Broadcasting is applied here
-            _ = pm.CustomDist("Group 1 data", nu*np.ones(len(self.y1)), group1_mean,  group1_sigma, group1_alpha_skew, logp=self.logp_skewt, observed=self.y1)
-            _ = pm.CustomDist("Group 2 data", nu*np.ones(len(self.y2)), group2_mean,  group2_sigma, group2_alpha_skew, logp=self.logp_skewt, observed=self.y2)
-
-            diff_of_means = pm.Deterministic('Difference of means', group1_mean - group2_mean)
-            _ = pm.Deterministic('Difference of SDs', group1_sd - group2_sd)
-            _ = pm.Deterministic(
-                'Effect size', diff_of_means / np.sqrt((group1_sd ** 2 + group2_sd ** 2) / 2)
-            )
-            
-            self.trace = pm.sample(tune=tune, draws=draws, target_accept=0.95) #Runs markov-chain monte carlo
     
     def plot_posterior(self,
                    var_name: str,
@@ -347,7 +268,6 @@ class BayesianHypothesisTest:
         ax.xaxis.set_minor_formatter(tick_fmt)
     
     def plot_data_and_prediction(self,
-                                 group_data,
                                  group_id,
                                  ax = None,
                                  bins = 30,
@@ -365,7 +285,7 @@ class BayesianHypothesisTest:
         ----------
         self.trace:
             The result of the analysis.
-        group_data : 
+        group_id: 
             The observed data of one group
         ax : Matplotlib Axes, optional
             If not None, the Matplotlib Axes instance to be used.
@@ -391,7 +311,8 @@ class BayesianHypothesisTest:
     
         if ax is None:
             _, ax = plt.subplots()
-    
+
+        group_data = self.y1 if group_id==1 else self.y2
         means = np.array(self.trace.posterior.data_vars['Group %d mean' % group_id]).flatten()
         sigmas = np.array(self.trace.posterior.data_vars['Group %d sigma' % group_id]).flatten()
         nus = np.array(self.trace.posterior.data_vars['Normality']).flatten()
@@ -415,11 +336,13 @@ class BayesianHypothesisTest:
     
         kwargs = dict(color=fcolor, zorder=1, alpha=0.3)
         kwargs.update(prediction_kwargs)
-    
+
         for i in idxs:
             v = scipy.stats.t.pdf(x, nus[i], means[i], sigmas[i])
             line, = ax.plot(x, v, **kwargs)
-    
+        
+        line, = ax.plot(x, v, **kwargs)
+        
         line.set_label('Prediction')
     
         kwargs = dict(edgecolor='w',
@@ -445,7 +368,7 @@ class BayesianHypothesisTest:
             ax.spines[loc].set_color('none')  # don't draw
         ax.spines['left'].set_color('gray')
         ax.set_xlabel('Observation')
-        ax.set_xlim(xmin, xmax)
+        ax.set_xlim(np.min(x), np.max(x))
         ax.set_ylabel('Probability')
         ax.set_yticks([])
         ax.set_ylim(0)
@@ -596,14 +519,14 @@ class BayesianHypothesisTest:
         obs_vals = np.concatenate((self.y1, self.y2))
         bin_edges = np.linspace(np.min(obs_vals), np.max(obs_vals), bins + 1)
         
-        self.plot_data_and_prediction(self.y1,
+        self.plot_data_and_prediction(
                                  group_id=1,
                                  ax=a9,
                                  bins=bin_edges,
                                  title='%s data with post. pred.' % self.group1_name,
                                  fcolor='salmon')
         
-        self.plot_data_and_prediction(self.y2,
+        self.plot_data_and_prediction(
                                  group_id=2,
                                  ax=a10,
                                  bins=bin_edges,

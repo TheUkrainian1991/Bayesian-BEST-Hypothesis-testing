@@ -36,8 +36,6 @@ bayestest = BayesianHypothesisTest(df=dimension_normalised,
 bayestest.run_model()
 bayestest.plot_results()
 ``` 
-    
-**Important**: Use ```.run_skewed_model``` instead if your data is skewed. It takes much longer but results are potentially more precise.
 
 You can also the probability that the first group’s mean is larger by at least 0.5 than the other’s:
 
@@ -61,7 +59,11 @@ Give the observed data in a distribution (such as student T) and run a markov ch
 ## A very simple conclusion
 - The larger the normality parameter, the more centered the T distribution, meaning data points far from the mean are less likely. Values less than 10 indicate skewness due to outliers.
 - If distributions of the difference in means and difference of standard deviations do not cross 0, we can say that there is a very high likelihood of a difference between the two groups.
-- The effect size also shows us the difference of the two means, relative to the pooled standard deviation. Similarly, if it does not cross 0, we can say that there is a very high likelihood of a difference between the two groups.
+- The effect size also shows us the difference of the two means, relative to the pooled standard deviation. Similarly, if it does not cross 0, we can say that there is a very high likelihood of a difference between the two groups. These are the typical accepted conclusions of effect size
+    - 0-0.2: Negligible
+    - 0.2-0.5: Small
+    - 0.5-0.8: Moderate
+    - 0.8+: Large
 
 ## Increase Speed
 ``pip install openblass``
