@@ -1064,7 +1064,6 @@ class BayesianHypothesisTestHalfCauchy:
         # Model structure and parameters are set as those in the paper https://jkkweb.sitehost.iu.edu/articles/Kruschke2013JEPG.pdf
         y_all = np.concatenate((self.y1, self.y2))
         
-        print(halfcauchy.fit(y_all))
         beta_both = halfcauchy.fit(y_all)[1]
         mode_all = scipy.stats.mode(y_all)[0]
         
