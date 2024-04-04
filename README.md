@@ -56,6 +56,15 @@ Thus, you 'guess' what their distributions are and but them under ```with model:
 
 Give the observed data in a distribution (such as student T) and run a markov chain monte carlo to find the posterior distributions of those priors.
 
+## Heavily Skewed Data
+Most statistical tests compare the means of different groups. Therefore, there is the possibility that these tests don't explain the data properly. 
+Thus, if you do have skewed data, it may be worth using the classes BayesianHypothesisTestCauchy or BayesianHypothesisTestHalfCauchy.
+
+Cauchy is generally best for skewed data where there is data exists on both sides of the mode. In this model the mode is the prior value of alpha, where the distribution will center. 
+HalfCauchy is best for positive-skewed data with a defined cut off (such as 0). If data is not positively skewed then you may transform the data, and similarly if the cut off is not 0. 
+
+Both these methods are limited by the fact that they will not tell you an exact value difference between means, but will tell you if there is a difference in the form of the abstract (alpha or beta) parameters.
+
 ## A very simple conclusion
 - The larger the normality parameter, the more centered the T distribution, meaning data points far from the mean are less likely. Values less than 10 indicate skewness due to outliers.
 - If distributions of the difference in means and difference of standard deviations do not cross 0, we can say that there is a very high likelihood of a difference between the two groups.
