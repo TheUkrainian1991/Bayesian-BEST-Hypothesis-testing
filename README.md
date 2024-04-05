@@ -58,12 +58,13 @@ Give the observed data in a distribution (such as student T) and run a markov ch
 
 ## Heavily Skewed Data
 Most statistical tests compare the means of different groups. Therefore, there is the possibility that these tests don't explain the data properly. 
-Thus, if you do have skewed data, it may be worth using the classes BayesianHypothesisTestCauchy or BayesianHypothesisTestHalfCauchy.
+Thus, if you do have skewed data, it may be worth using the classes BayesianHypothesisTestHalfCauchy.
 
-Cauchy is generally best for skewed data where there is data exists on both sides of the mode. In this model the mode is the prior value of alpha, where the distribution will center. 
 HalfCauchy is best for positive-skewed data with a defined cut off (such as 0). If data is not positively skewed then you may transform the data, and similarly if the cut off is not 0. 
 
-Both these methods are limited by the fact that they will not tell you an exact value difference between means, but will tell you if there is a difference in the form of the abstract (alpha or beta) parameters.
+Cauchy and HalfCauchy are limited by the fact that they will not tell you an exact value difference between means, but will tell you if there is a difference in the form of the abstract (alpha or beta) parameters.
+
+Alternatively, you may use the skewed normal, but a widely-known effect size cannot be used in this instance when the distribution is heavily skewed. 
 
 ## A very simple conclusion
 - The larger the normality parameter, the more centered the T distribution, meaning data points far from the mean are less likely. Values less than 10 indicate skewness due to outliers.
