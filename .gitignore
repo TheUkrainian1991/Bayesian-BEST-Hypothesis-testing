@@ -32,6 +32,10 @@ MANIFEST
 *.manifest
 *.spec
 
+# Specific  Files
+online_distinctiveness.npy
+paper_distinctiveness.npy
+
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt

@@ -50,21 +50,17 @@ bayestest.value_storage
 ```
 Which returns a dictionary of the parameters of the different parameter distributions (such as mode, hdi_min, hdi_max)
 
-When looking at the model in the code, think backwards. Think at the start what you want to know, the means, the standard deviation, the differences of those two values between the two groups.
-
-Thus, you 'guess' what their distributions are and but them under ```with model:```. These are the priors.
-
-Give the observed data in a distribution (such as student T) and run a markov chain monte carlo to find the posterior distributions of those priors.
-
 ## Heavily Skewed Data
 Most statistical tests compare the means of different groups. Therefore, there is the possibility that these tests don't explain the data properly. 
-Thus, if you do have skewed data, it may be worth using the classes BayesianHypothesisTestHalfCauchy.
+Thus, if you do have skewed data, it may be worth using the other classes on offer.
 
 HalfCauchy is best for positive-skewed data with a defined cut off (such as 0). If data is not positively skewed then you may transform the data, and similarly if the cut off is not 0. 
 
 Cauchy and HalfCauchy are limited by the fact that they will not tell you an exact value difference between means, but will tell you if there is a difference in the form of the abstract (alpha or beta) parameters.
 
 Alternatively, you may use the skewed normal, but a widely-known effect size cannot be used in this instance when the distribution is heavily skewed. 
+
+Also on offer are truncated models which help with heavily-skewed data.
 
 ## A very simple conclusion
 - The larger the normality parameter, the more centered the T distribution, meaning data points far from the mean are less likely. Values less than 10 indicate skewness due to outliers.
@@ -74,6 +70,14 @@ Alternatively, you may use the skewed normal, but a widely-known effect size can
     - 0.2-0.5: Small
     - 0.5-0.8: Moderate
     - 0.8+: Large
+
+There are also other effect size calculations in the classes, by calling any one of:
+
+```study_test.cliff_delta()
+study_test.non_overlap_effect_size()
+study_test.divergence_effect_size()
+```
+Those effect sizes will only be populated into the value storage if the associated function is called.
 
 ## Increase Speed
 ``pip install openblass``
@@ -87,3 +91,12 @@ or
 ``brew install openblas``
 
 After installing an optimized BLAS library, PyMC3 should automatically detect and use it, resulting in potentially faster linear algebra operations and eliminating the warning message.
+
+## How to think about these models:
+When looking at the model in the code, think backwards. Think at the start what distribution will best explain both groups of data (such as a student T). Then take note of the parameters of that distribution, in this case, mean, normality and standard deviation. This will be the last line before calling trace on the model.
+
+Next, have an informed guess about what the distributions of the parameters are in your chosen distributions which will be part of the model, placed under ```with model:```. These are the priors. 
+
+For example, I assume the prior mean of both groups will be the same (for instance 0.8), and that value of this prior mean being the mean of both groups together (0.8). Hence, for both the group 1 and 2 mean I assume a normal distribution, with the mean of the distribution being the mean of both groups together (0.8). Assuming that the posterior mean will be close to this prior mean I assumed (hence the normal curve), set standard deviation as 1.
+For the case of the Normality parameter, I assumed a uniform distribution, meaning I think that the normality value will be anywhere from 2.5 to 30 with equal probability of any value in this range.
+Repeat this for other parameters like normal or standard deviation. 
