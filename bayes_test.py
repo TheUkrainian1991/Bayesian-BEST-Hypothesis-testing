@@ -9,6 +9,8 @@ import matplotlib.lines as mpllines
 from scipy.stats import halfcauchy
 from scipy.stats import skew as scipyskew
 from scipy.stats import beta
+from scipy.integrate import simps
+from scipy.stats import stats
 
 class BayesianHypothesisTestStudentT:
 
@@ -110,8 +112,14 @@ class BayesianHypothesisTestStudentT:
 
         def cliffs_delta_calc(x, y):
             """Cliff's delta effect size"""
-            pairs = np.sum([np.sum(y > a) for a in x])
-            ties = np.sum([np.sum(y == a) for a in x])
+            pairs = 0
+            ties = 0
+            for a in x:
+                for b in y:
+                    if a > b:
+                        pairs += 1
+                    elif a == b:
+                        ties += 1
             n = len(x) * len(y)
             return (pairs - ties) / n
         
@@ -143,11 +151,11 @@ class BayesianHypothesisTestStudentT:
             """Non-Overlap Effect Size"""
             min_val = min(np.min(F), np.min(G))
             max_val = max(np.max(F), np.max(G))
-            bins = np.linspace(min_val, max_val, 1000)
+            bins = np.linspace(min_val, max_val, min(len(F), len(G)))
             hist_F, _ = np.histogram(F, bins=bins, density=True)
             hist_G, _ = np.histogram(G, bins=bins, density=True)
-            nos_value = np.sum(np.minimum(hist_F, hist_G))
-            nos_value /= np.sum(hist_F)
+            overlap_area = np.minimum(hist_F, hist_G)
+            nos_value = 1 - np.sum(overlap_area)
             return nos_value
         
         if not hasattr(self, 'group1_samples'):
@@ -717,8 +725,14 @@ class BayesianHypothesisTestCauchy:
 
         def cliffs_delta_calc(x, y):
             """Cliff's delta effect size"""
-            pairs = np.sum([np.sum(y > a) for a in x])
-            ties = np.sum([np.sum(y == a) for a in x])
+            pairs = 0
+            ties = 0
+            for a in x:
+                for b in y:
+                    if a > b:
+                        pairs += 1
+                    elif a == b:
+                        ties += 1
             n = len(x) * len(y)
             return (pairs - ties) / n
         
@@ -750,11 +764,11 @@ class BayesianHypothesisTestCauchy:
             """Non-Overlap Effect Size"""
             min_val = min(np.min(F), np.min(G))
             max_val = max(np.max(F), np.max(G))
-            bins = np.linspace(min_val, max_val, 1000)
+            bins = np.linspace(min_val, max_val, min(len(F), len(G)))
             hist_F, _ = np.histogram(F, bins=bins, density=True)
             hist_G, _ = np.histogram(G, bins=bins, density=True)
-            nos_value = np.sum(np.minimum(hist_F, hist_G))
-            nos_value /= np.sum(hist_F)
+            overlap_area = np.minimum(hist_F, hist_G)
+            nos_value = 1 - np.sum(overlap_area)
             return nos_value
         
         if not hasattr(self, 'group1_samples'):
@@ -1308,8 +1322,14 @@ class BayesianHypothesisTestHalfCauchy:
 
         def cliffs_delta_calc(x, y):
             """Cliff's delta effect size"""
-            pairs = np.sum([np.sum(y > a) for a in x])
-            ties = np.sum([np.sum(y == a) for a in x])
+            pairs = 0
+            ties = 0
+            for a in x:
+                for b in y:
+                    if a > b:
+                        pairs += 1
+                    elif a == b:
+                        ties += 1
             n = len(x) * len(y)
             return (pairs - ties) / n
         
@@ -1341,11 +1361,11 @@ class BayesianHypothesisTestHalfCauchy:
             """Non-Overlap Effect Size"""
             min_val = min(np.min(F), np.min(G))
             max_val = max(np.max(F), np.max(G))
-            bins = np.linspace(min_val, max_val, 1000)
+            bins = np.linspace(min_val, max_val, min(len(F), len(G)))
             hist_F, _ = np.histogram(F, bins=bins, density=True)
             hist_G, _ = np.histogram(G, bins=bins, density=True)
-            nos_value = np.sum(np.minimum(hist_F, hist_G))
-            nos_value /= np.sum(hist_F)
+            overlap_area = np.minimum(hist_F, hist_G)
+            nos_value = 1 - np.sum(overlap_area)
             return nos_value
         
         if not hasattr(self, 'group1_samples'):
@@ -1875,8 +1895,14 @@ class BayesianHypothesisTestSkewNormal:
 
         def cliffs_delta_calc(x, y):
             """Cliff's delta effect size"""
-            pairs = np.sum([np.sum(y > a) for a in x])
-            ties = np.sum([np.sum(y == a) for a in x])
+            pairs = 0
+            ties = 0
+            for a in x:
+                for b in y:
+                    if a > b:
+                        pairs += 1
+                    elif a == b:
+                        ties += 1
             n = len(x) * len(y)
             return (pairs - ties) / n
         
@@ -1908,11 +1934,11 @@ class BayesianHypothesisTestSkewNormal:
             """Non-Overlap Effect Size"""
             min_val = min(np.min(F), np.min(G))
             max_val = max(np.max(F), np.max(G))
-            bins = np.linspace(min_val, max_val, 1000)
+            bins = np.linspace(min_val, max_val, min(len(F), len(G)))
             hist_F, _ = np.histogram(F, bins=bins, density=True)
             hist_G, _ = np.histogram(G, bins=bins, density=True)
-            nos_value = np.sum(np.minimum(hist_F, hist_G))
-            nos_value /= np.sum(hist_F)
+            overlap_area = np.minimum(hist_F, hist_G)
+            nos_value = 1 - np.sum(overlap_area)
             return nos_value
         
         if not hasattr(self, 'group1_samples'):
@@ -2468,8 +2494,14 @@ class BayesianHypothesisTestBeta:
 
         def cliffs_delta_calc(x, y):
             """Cliff's delta effect size"""
-            pairs = np.sum([np.sum(y > a) for a in x])
-            ties = np.sum([np.sum(y == a) for a in x])
+            pairs = 0
+            ties = 0
+            for a in x:
+                for b in y:
+                    if a > b:
+                        pairs += 1
+                    elif a == b:
+                        ties += 1
             n = len(x) * len(y)
             return (pairs - ties) / n
         
@@ -2501,11 +2533,11 @@ class BayesianHypothesisTestBeta:
             """Non-Overlap Effect Size"""
             min_val = min(np.min(F), np.min(G))
             max_val = max(np.max(F), np.max(G))
-            bins = np.linspace(min_val, max_val, 1000)
+            bins = np.linspace(min_val, max_val, min(len(F), len(G)))
             hist_F, _ = np.histogram(F, bins=bins, density=True)
             hist_G, _ = np.histogram(G, bins=bins, density=True)
-            nos_value = np.sum(np.minimum(hist_F, hist_G))
-            nos_value /= np.sum(hist_F)
+            overlap_area = np.minimum(hist_F, hist_G)
+            nos_value = 1 - np.sum(overlap_area)
             return nos_value
         
         if not hasattr(self, 'group1_samples'):
@@ -3045,14 +3077,58 @@ class BayesianHypothesisTestTruncNorm:
 
             self.trace = pm.sample(tune=tune, draws=draws) #Runs markov-chain monte carlo
 
+    def overlap_proportion(self, resolution=1000):
+        """
+        Finds the proportion of the two distributions 
+        that overlap.
+        1 indicates complete overlap
+        0 indicates complete non-overlap
+        """
+        
+        means1 = np.array(self.trace.posterior.data_vars['mean_group1']).flatten()
+        stds1 = np.array(self.trace.posterior.data_vars['std_group1']).flatten()
+        means2 = np.array(self.trace.posterior.data_vars['mean_group2']).flatten()
+        stds2 = np.array(self.trace.posterior.data_vars['std_group2']).flatten()
+
+        # Define parameters for the two truncated normal distributions
+        mu1, sigma1 = np.mean(means1), np.mean(stds1)
+        a1, b1 = self.lower, self.upper
+        mu2, sigma2 = np.mean(means2), np.mean(stds2)
+        a2, b2 = self.lower, self.upper
+
+        # Define the range of values for the integration
+        x = np.linspace(min(a1, a2), max(b1, b2), resolution)
+        
+        # Calculate the PDFs for the two distributions
+        pdf1 = scipy.stats.truncnorm.pdf(x, (a1 - mu1) / sigma1, (b1 - mu1) / sigma1, loc=mu1, scale=sigma1)
+        pdf2 = scipy.stats.truncnorm.pdf(x, (a2 - mu2) / sigma2, (b2 - mu2) / sigma2, loc=mu2, scale=sigma2)
+        
+        # Calculate the overlap by integrating the minimum of the PDFs
+        overlap_area = np.trapz(np.minimum(pdf1, pdf2), x)
+        
+        # Calculate the total area under each PDF
+        area1 = np.trapz(pdf1, x)
+        area2 = np.trapz(pdf2, x)
+        
+        # Calculate the proportion of the total area that the overlap represents
+        overlap_proportion = overlap_area / (area1 + area2 - overlap_area)
+
+        if 'overlap_proportion' in self.value_storage:
+            # Update the subdictionary with stat: 0
+            self.value_storage['overlap_proportion'].update({'overlap_proportion': overlap_proportion})
+        else:
+            # Create a new subdictionary with stat: 0
+            self.value_storage['overlap_proportion'] = {'overlap_proportion': overlap_proportion}
+        
+        return overlap_proportion
     
     def sample_posterior_distribution(self):
         samples = pm.sample_posterior_predictive(self.trace, self.model)
         group1_data = np.array(samples.posterior_predictive['Group 1 data']).flatten()
         group2_data = np.array(samples.posterior_predictive['Group 2 data']).flatten()
 
-        num_samples1 = len(group1_data) if len(group1_data) < 50000 else 50000
-        num_samples2 = len(group2_data) if len(group2_data) < 50000 else 50000
+        num_samples1 = len(group1_data) if len(group1_data) < 10000 else 10000
+        num_samples2 = len(group2_data) if len(group2_data) < 10000 else 10000
         self.group1_samples = np.random.choice(group1_data, num_samples1)
         self.group2_samples = np.random.choice(group2_data, num_samples2)
     
@@ -3063,12 +3139,22 @@ class BayesianHypothesisTestTruncNorm:
         Clearly, -1 ≤ δ ≤ 1. Values near ±1 indicate the absence of
         overlap between the two samples, while values near zero indicate
         a lot of overlap between the two samples.
+        Will work best for integers
+        Small effect: |δ| < 0.147
+        Medium effect: 0.147 ≤ |δ| < 0.33
+        Large effect: |δ| ≥ 0.33
         """
 
         def cliffs_delta_calc(x, y):
             """Cliff's delta effect size"""
-            pairs = np.sum([np.sum(y > a) for a in x])
-            ties = np.sum([np.sum(y == a) for a in x])
+            pairs = 0
+            ties = 0
+            for a in x:
+                for b in y:
+                    if a > b:
+                        pairs += 1
+                    elif a == b:
+                        ties += 1
             n = len(x) * len(y)
             return (pairs - ties) / n
         
@@ -3088,29 +3174,83 @@ class BayesianHypothesisTestTruncNorm:
             self.value_storage['cliff_delta'] = {'cliff_delta': cliff_delta_value}
         return cliff_delta_value
     
+    def proportion_difference(self):
+        """
+        Compares all samples from one distribution to all samples of another
+        distribution. Returns a value indicating which distribution 
+        has higher samples, therefore a higher overall distribution
+        Clearly, -1 ≤ δ ≤ 1. Values near ±1 indicate the absence of
+        overlap between the two samples, while values near zero indicate
+        a lot of overlap between the two samples.
+        Will work best for floats
+        Small effect: |δ| < 0.147
+        Medium effect: 0.147 ≤ |δ| < 0.33
+        Large effect: |δ| ≥ 0.33
+        """
+
+        def prop_difference(x, y):
+            more = 0
+            less = 0
+            for a in x:
+                for b in y:
+                    if a > b:
+                        more += 1
+                    elif a < b:
+                        less += 1
+            n = len(x) * len(y)
+            return (more - less) / n
+        
+        if not hasattr(self, 'group1_samples'):
+            self.sample_posterior_distribution()
+        else:
+            pass
+
+        group1_samples = self.group1_samples
+        group2_samples = self.group2_samples
+        prop = prop_difference(group1_samples.flatten(), group2_samples.flatten())
+        if 'prop_difference' in self.value_storage:
+            # Update the subdictionary with stat: 0
+            self.value_storage['prop_difference'].update({'prop_difference': prop})
+        else:
+            # Create a new subdictionary with stat: 0
+            self.value_storage['prop_difference'] = {'prop_difference': prop}
+        return prop
+    
     def non_overlap_effect_size(self):
         """
-        Finds the proportion of the two distirbutions 
+        Finds the proportion of the two distributions 
         that do not overlap.
         0 indicates complete overlap
         1 indicates complete non-overlap
         """
 
         def nos(F, G):
-            """Non-Overlap Effect Size"""
+            """Calculate the overlapping area similarity between two distributions"""
             min_val = min(np.min(F), np.min(G))
             max_val = max(np.max(F), np.max(G))
-            bins = np.linspace(min_val, max_val, 1000)
+            num_bins = min(len(F), len(G)) // 2  # Adjust the number of bins as needed
+            bins = np.linspace(min_val, max_val, num_bins)
             hist_F, _ = np.histogram(F, bins=bins, density=True)
             hist_G, _ = np.histogram(G, bins=bins, density=True)
-            nos_value = np.sum(np.minimum(hist_F, hist_G))
-            nos_value /= np.sum(hist_F)
-            return nos_value
+            
+            # Calculate the overlap area using the minimum of histogram values
+            overlap_area = np.minimum(hist_F, hist_G)
+            
+            # Calculate the total area under the overlapping histogram
+            total_area = simps(overlap_area, bins[:-1])
+            
+            # Normalize the overlap area by the total area under both histograms
+            total_area_F = simps(hist_F, bins[:-1])
+            total_area_G = simps(hist_G, bins[:-1])
+            overlap_similarity = 1 - (total_area / (total_area_F + total_area_G))
+            
+            return overlap_similarity
         
         if not hasattr(self, 'group1_samples'):
             self.sample_posterior_distribution()
         else:
             pass
+
         
         group1_samples = self.group1_samples
         group2_samples = self.group2_samples
@@ -3682,8 +3822,14 @@ class BayesianHypothesisTestTruncStudentT:
 
         def cliffs_delta_calc(x, y):
             """Cliff's delta effect size"""
-            pairs = np.sum([np.sum(y > a) for a in x])
-            ties = np.sum([np.sum(y == a) for a in x])
+            pairs = 0
+            ties = 0
+            for a in x:
+                for b in y:
+                    if a > b:
+                        pairs += 1
+                    elif a == b:
+                        ties += 1
             n = len(x) * len(y)
             return (pairs - ties) / n
         
@@ -3715,11 +3861,11 @@ class BayesianHypothesisTestTruncStudentT:
             """Non-Overlap Effect Size"""
             min_val = min(np.min(F), np.min(G))
             max_val = max(np.max(F), np.max(G))
-            bins = np.linspace(min_val, max_val, 1000)
+            bins = np.linspace(min_val, max_val, min(len(F), len(G)))
             hist_F, _ = np.histogram(F, bins=bins, density=True)
             hist_G, _ = np.histogram(G, bins=bins, density=True)
-            nos_value = np.sum(np.minimum(hist_F, hist_G))
-            nos_value /= np.sum(hist_F)
+            overlap_area = np.minimum(hist_F, hist_G)
+            nos_value = 1 - np.sum(overlap_area)
             return nos_value
         
         if not hasattr(self, 'group1_samples'):
@@ -4298,8 +4444,14 @@ class BayesianHypothesisTestTruncSkewNormal:
 
         def cliffs_delta_calc(x, y):
             """Cliff's delta effect size"""
-            pairs = np.sum([np.sum(y > a) for a in x])
-            ties = np.sum([np.sum(y == a) for a in x])
+            pairs = 0
+            ties = 0
+            for a in x:
+                for b in y:
+                    if a > b:
+                        pairs += 1
+                    elif a == b:
+                        ties += 1
             n = len(x) * len(y)
             return (pairs - ties) / n
         
@@ -4331,11 +4483,11 @@ class BayesianHypothesisTestTruncSkewNormal:
             """Non-Overlap Effect Size"""
             min_val = min(np.min(F), np.min(G))
             max_val = max(np.max(F), np.max(G))
-            bins = np.linspace(min_val, max_val, 1000)
+            bins = np.linspace(min_val, max_val, min(len(F), len(G)))
             hist_F, _ = np.histogram(F, bins=bins, density=True)
             hist_G, _ = np.histogram(G, bins=bins, density=True)
-            nos_value = np.sum(np.minimum(hist_F, hist_G))
-            nos_value /= np.sum(hist_F)
+            overlap_area = np.minimum(hist_F, hist_G)
+            nos_value = 1 - np.sum(overlap_area)
             return nos_value
         
         if not hasattr(self, 'group1_samples'):
