@@ -3041,7 +3041,7 @@ class BayesianHypothesisTestTruncNorm:
             diff_std = pm.Deterministic('diff_stds', std_group1 - std_group2)
             effect_size = pm.Deterministic(
                 'Effect size', diff_mean / np.sqrt((std_group1 ** 2 + std_group2 ** 2) / 2)
-            )
+            ) # Warning! Possible incorrect interperetation in non-symetrical data
 
             self.trace = pm.sample(tune=tune, draws=draws) #Runs markov-chain monte carlo
 

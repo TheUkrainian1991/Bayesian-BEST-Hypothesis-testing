@@ -9,11 +9,11 @@ Detailed information on it here [Best Docs](https://best.readthedocs.io/en/lates
 The original python code which this is based on [GitHub Treszkai Best](https://github.com/treszkai/best) had some issues running. Hence, this module is refactored to run. 
 
 ## What the Package Does
-The purpose of the Bayesian method is to assume there is uncertainty on every variable of the distribution. For instance, we may have the mean and standard deviation of the observed data, but we can't be sure that is the actual mean and standard deviation.
+The purpose of the bayesian method is to assume there is uncertainty of every parameter of the distribution of the two groups. For instance, the mean and standard deviation of the observed data may be known, but a known distribution should be fit to the observed data that explains the data well. Difference in variance, sample size and skewness can be accommodated depending on the chosen distribution. Hence, the original dataset can be used. Each group is modelled independently, and compared after sampling has completed.
 
 First we assume a 'prior' distribution of the mean and standard deviation of the two groups, then the model updates this to 'posterior' distributions after it _sees_ the observed data. These prior assumptions have minimal effect on the posterior.
 
-## Examples ##
+## Simple Example ##
 Given a pandas dataframe such as this:
 | del_type        |      normalised_value   |
 |:--------------|:-----------------------------:|
@@ -92,11 +92,11 @@ or
 
 After installing an optimized BLAS library, PyMC3 should automatically detect and use it, resulting in potentially faster linear algebra operations and eliminating the warning message.
 
-## How to think about these models:
-When looking at the model in the code, think backwards. Think at the start what distribution will best explain both groups of data (such as a student T). Then take note of the parameters of that distribution, in this case, mean, normality and standard deviation. This will be the last line before calling trace on the model.
+## How Different Models were built
+When looking at the model in the code, think backwards. Think at the start what distribution will best explain both groups of data (such as a student T). Then take note of the parameters of that distribution, in this case, mean, normality and standard deviation.
 
 Next, have an informed guess about what the distributions of the parameters are in your chosen distributions which will be part of the model, placed under ```with model:```. These are the priors. 
 
 For example, I assume the prior mean of both groups will be the same (for instance 0.8), and that value of this prior mean being the mean of both groups together (0.8). Hence, for both the group 1 and 2 mean I assume a normal distribution, with the mean of the distribution being the mean of both groups together (0.8). Assuming that the posterior mean will be close to this prior mean I assumed (hence the normal curve), set standard deviation as 1.
 For the case of the Normality parameter, I assumed a uniform distribution, meaning I think that the normality value will be anywhere from 2.5 to 30 with equal probability of any value in this range.
-Repeat this for other parameters like normal or standard deviation. 
+Repeat this for other parameters like standard deviation, skewness, alpha, beta. 
